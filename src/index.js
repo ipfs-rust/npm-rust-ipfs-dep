@@ -1,54 +1,69 @@
 'use strict'
 /*
-  Download go-ipfs distribution package for desired version, platform and architecture,
+  Download rust-ipfs distribution package for desired version, platform and architecture,
   and unpack it to a desired output directory.
 
   API:
     download([<version>, <platform>, <arch>, <outputPath>])
 
   Defaults:
-    go-ipfs version: value in package.json/go-ipfs/version
-    go-ipfs platform: the platform this program is run from
-    go-ipfs architecture: the architecture of the hardware this program is run from
-    go-ipfs install path: './go-ipfs'
+    rust-ipfs version: value in package.json/rust-ipfs/version
+    rust-ipfs platform: the platform this program is run from
+    rust-ipfs architecture: the architecture of the hardware this program is run from
+    rust-ipfs install path: './rust-ipfs'
 
   Example:
-    const download = require('go-ipfs-dep')
+    const download = require('rust-ipfs-dep')
 
-    download("v0.4.5", "linux", "amd64", "/tmp/go-ipfs"])
+    download("v0.4.5", "linux", "amd64", "/tmp/rust-ipfs"])
       .then((res) => console.log('filename:', res.file, "output:", res.dir))
       .catch((e) => console.error(e))
 */
-const goenv = require('go-platform')
-const gunzip = require('gunzip-maybe')
+
 const path = require('path')
-const tarFS = require('tar-fs')
-const unzip = require('unzip-stream')
 const fetch = require('node-fetch')
 const pkgConf = require('pkg-conf')
 const pkg = require('./../package.json')
 const fs = require('fs')
 
-function unpack ({ url, installPath, stream }) {
-  return new Promise((resolve, reject) => {
-    if (url.endsWith('.zip')) {
-      return stream.pipe(
-        unzip
-          .Extract({ path: installPath })
-          .on('close', resolve)
-          .on('error', reject)
-      )
-    }
+/*
+const gunzip = require('gunzip-maybe')
+const tarFS = require('tar-fs')
+const unzip = require('unzip-stream')
+*/
 
-    return stream
-      .pipe(gunzip())
-      .pipe(
-        tarFS
-          .extract(installPath)
-          .on('finish', resolve)
-          .on('error', reject)
-      )
+function unpack ({ url, installPath, stream }) {
+  const fileStream = fs.createWriteStream(`${installPath}/ipfs`)
+
+  return new Promise((resolve, reject) => {
+    stream.pipe(fileStream)
+    stream.on('error', (err) => {
+      reject(err)
+    })
+    stream.on('finish', function () {
+      resolve()
+    })
   })
+
+  //   return new Promise((resolve, reject) => {
+  //     if (url.endsWith('.zip')) {
+  //       return stream.pipe(
+  //         unzip
+  //           .Extract({ path: installPath })
+  //           .on('close', resolve)
+  //           .on('error', reject)
+  //       )
+  //     }
+  //
+  //     return stream
+  //       .pipe(gunzip())
+  //       .pipe(
+  //         tarFS
+  //           .extract(installPath)
+  //           .on('finish', resolve)
+  //           .on('error', reject)
+  //       )
+  //   })
 }
 
 async function download ({ installPath, url }) {
@@ -58,49 +73,48 @@ async function download ({ installPath, url }) {
 }
 
 function cleanArguments (version, platform, arch, installPath) {
-  const conf = pkgConf.sync('go-ipfs', {
+  const conf = pkgConf.sync('rust-ipfs', {
     cwd: path.join(process.cwd(), '..'),
     defaults: {
       version: 'v' + pkg.version.replace(/-[0-9]+/, ''),
-      distUrl: 'https://dist.ipfs.io'
+      distUrl: 'https://api.github.com'
     }
   })
   return {
     version: process.env.TARGET_VERSION || version || conf.version,
-    platform: process.env.TARGET_OS || platform || goenv.GOOS,
-    arch: process.env.TARGET_ARCH || arch || goenv.GOARCH,
-    distUrl: process.env.GO_IPFS_DIST_URL || conf.distUrl,
+    platform: process.env.TARGET_OS || platform,
+    arch: process.env.TARGET_ARCH || arch,
+    distUrl: process.env.RUST_IPFS_DIST_URL || conf.distUrl,
     installPath: installPath ? path.resolve(installPath) : process.cwd()
   }
 }
 
 async function ensureVersion ({ version, distUrl }) {
-  const res = await fetch(`${distUrl}/go-ipfs/versions`)
+  const res = await fetch(`${distUrl}/repos/ipfs-rust/rust-ipfs/releases`)
   if (!res.ok) throw new Error(`Unexpected status: ${res.status}`)
-  const versions = (await res.text()).trim().split('\n')
+  const release = (await res.json()).filter(r => r.tag_name === version)[0]
 
-  if (versions.indexOf(version) === -1) {
+  if (!release) {
     throw new Error(`Version '${version}' not available`)
   }
+
+  return release
 }
 
 async function getDownloadURL ({ version, platform, arch, distUrl }) {
-  await ensureVersion({ version, distUrl })
+  const release = await ensureVersion({ version, distUrl })
 
-  const res = await fetch(`${distUrl}/go-ipfs/${version}/dist.json`)
+  const res = await fetch(release.assets_url)
   if (!res.ok) throw new Error(`Unexpected status: ${res.status}`)
-  const data = await res.json()
+  const assets = await res.json()
 
-  if (!data.platforms[platform]) {
-    throw new Error(`No binary available for platform '${platform}'`)
-  }
+  const assetName = `ipfs`
+  const targetAsset = assets.filter(a => a.name === assetName)[0]
+  const res2 = await fetch(targetAsset.url)
+  if (!res2.ok) throw new Error(`Unexpected status: ${res.status}`)
+  const asset = await res2.json()
 
-  if (!data.platforms[platform].archs[arch]) {
-    throw new Error(`No binary available for arch '${arch}'`)
-  }
-
-  const link = data.platforms[platform].archs[arch].link
-  return `${distUrl}/go-ipfs/${version}${link}`
+  return asset.browser_download_url
 }
 
 module.exports = async function () {
@@ -113,14 +127,15 @@ module.exports = async function () {
 
   return {
     fileName: url.split('/').pop(),
-    installPath: path.join(args.installPath, 'go-ipfs') + path.sep
+    installPath: path.join(args.installPath, 'ipfs') + path.sep
   }
 }
 
 module.exports.path = function () {
   const paths = [
-    path.resolve(path.join(__dirname, '..', 'go-ipfs', 'ipfs')),
-    path.resolve(path.join(__dirname, '..', 'go-ipfs', 'ipfs.exe'))
+    path.resolve(path.join(__dirname, '..', 'ipfs'))
+    // TODO: Windows
+    // path.resolve(path.join(__dirname, '..', 'rust-ipfs', 'ipfs.exe'))
   ]
 
   for (const bin of paths) {
@@ -129,7 +144,7 @@ module.exports.path = function () {
     }
   }
 
-  throw new Error('go-ipfs binary not found, it may not be installed or an error may have occured during installation')
+  throw new Error('rust-ipfs binary not found, it may not be installed or an error may have occured during installation')
 }
 
 module.exports.path.silent = function () {
