@@ -25,45 +25,33 @@ const fetch = require('node-fetch')
 const pkgConf = require('pkg-conf')
 const pkg = require('./../package.json')
 const fs = require('fs')
-
-/*
 const gunzip = require('gunzip-maybe')
 const tarFS = require('tar-fs')
 const unzip = require('unzip-stream')
-*/
+const goenv = require('go-platform')
 
 function unpack ({ url, installPath, stream }) {
-  const fileStream = fs.createWriteStream(`${installPath}/ipfs`)
-
   return new Promise((resolve, reject) => {
-    stream.pipe(fileStream)
-    stream.on('error', (err) => {
-      reject(err)
-    })
-    stream.on('finish', function () {
-      resolve()
+    return new Promise((resolve, reject) => {
+      if (url.endsWith('.zip')) {
+        return stream.pipe(
+          unzip
+            .Extract({ path: installPath })
+            .on('close', resolve)
+            .on('error', reject)
+        )
+      }
+
+      return stream
+        .pipe(gunzip())
+        .pipe(
+          tarFS
+            .extract(installPath)
+            .on('finish', resolve)
+            .on('error', reject)
+        )
     })
   })
-
-  //   return new Promise((resolve, reject) => {
-  //     if (url.endsWith('.zip')) {
-  //       return stream.pipe(
-  //         unzip
-  //           .Extract({ path: installPath })
-  //           .on('close', resolve)
-  //           .on('error', reject)
-  //       )
-  //     }
-  //
-  //     return stream
-  //       .pipe(gunzip())
-  //       .pipe(
-  //         tarFS
-  //           .extract(installPath)
-  //           .on('finish', resolve)
-  //           .on('error', reject)
-  //       )
-  //   })
 }
 
 async function download ({ installPath, url }) {
@@ -82,9 +70,9 @@ function cleanArguments (version, platform, arch, installPath) {
   })
   return {
     version: process.env.TARGET_VERSION || version || conf.version,
-    platform: process.env.TARGET_OS || platform,
-    arch: process.env.TARGET_ARCH || arch,
-    distUrl: process.env.RUST_IPFS_DIST_URL || conf.distUrl,
+    platform: process.env.TARGET_OS || platform || goenv.GOOS,
+    arch: process.env.TARGET_ARCH || arch || goenv.GOARCH,
+    distUrl: process.env.GO_IPFS_DIST_URL || conf.distUrl,
     installPath: installPath ? path.resolve(installPath) : process.cwd()
   }
 }
@@ -108,7 +96,7 @@ async function getDownloadURL ({ version, platform, arch, distUrl }) {
   if (!res.ok) throw new Error(`Unexpected status: ${res.status}`)
   const assets = await res.json()
 
-  const assetName = `ipfs`
+  const assetName = `rust-ipfs-http.tar.gz`
   const targetAsset = assets.filter(a => a.name === assetName)[0]
   const res2 = await fetch(targetAsset.url)
   if (!res2.ok) throw new Error(`Unexpected status: ${res.status}`)
