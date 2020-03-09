@@ -127,15 +127,14 @@ module.exports = async function () {
 
   return {
     fileName: url.split('/').pop(),
-    installPath: path.join(args.installPath, 'ipfs') + path.sep
+    installPath: path.join(args.installPath, 'rust-ipfs') + path.sep
   }
 }
 
 module.exports.path = function () {
   const paths = [
-    path.resolve(path.join(__dirname, '..', 'ipfs'))
-    // TODO: Windows
-    // path.resolve(path.join(__dirname, '..', 'rust-ipfs', 'ipfs.exe'))
+    path.resolve(path.join(__dirname, '..', 'rust-ipfs', 'ipfs')),
+    path.resolve(path.join(__dirname, '..', 'rust-ipfs', 'ipfs.exe'))
   ]
 
   for (const bin of paths) {

@@ -1,32 +1,29 @@
-# go-ipfs-dep
+# rust-ipfs-dep
 
-> Download [go-ipfs](https://github.com/ipfs/go-ipfs/) to your node_modules.
+> Download [rust-ipfs](https://github.com/ipfs-rust/rust-ipfs/) to your node_modules.
 
-[![](https://img.shields.io/badge/made%20by-Protocol%20Labs-blue.svg?style=flat-square)](http://ipn.io)
 [![](https://img.shields.io/badge/project-IPFS-blue.svg?style=flat-square)](http://ipfs.io/)
-[![](https://img.shields.io/badge/freenode-%23ipfs-blue.svg?style=flat-square)](http://webchat.freenode.net/?channels=%23ipfs)
-[![Travis CI](https://flat.badgen.net/travis/ipfs/npm-go-ipfs-dep)](https://travis-ci.com/ipfs/npm-go-ipfs-dep)
-[![Dependency Status](https://david-dm.org/ipfs/npm-go-ipfs.svg?style=flat-square)](https://david-dm.org/ipfs/npm-go-ipfs)
-
+[![Back on OpenCollective](https://img.shields.io/badge/open%20collective-donate-yellow.svg)](https://opencollective.com/ipfs-rust) [![Matrix](https://img.shields.io/badge/matrix-%23rust_ipfs%3Amatrix.org-blue.svg)](https://riot.im/app/#/room/#rust-ipfs:matrix.org) [![Discord](https://img.shields.io/discord/475789330380488707?color=blueviolet&label=discord)](https://discord.gg/9E5SFvW) 
 
 # Installation
 
 ```
-npm install go-ipfs-dep --save
+# Coming soon!
+npm install rust-ipfs-dep --save
 ```
 
 See [IPFS getting-started](http://ipfs.io/docs/getting-started). If anything goes wrong, try using: [http://ipfs.io/docs/install](http://ipfs.io/docs/install).
 
 ## Usage
 
-This module downloads `go-ipfs` binaries from https://dist.ipfs.io into your project.
+This module downloads `rust-ipfs` binaries from https://github.com/ipfs-rust/rust-ipfs/releases into your project.
 
-By default it will download the go-ipfs version that matches the npm version of this module. So depending on `go-ipfs-dep@0.4.19` will install `go-ipfs v0.4.19` for your current system architecture, in to your project at `node_modules/go-ipfs-dep/go-ipfs/ipfs`.
+By default it will download the go-ipfs version that matches the npm version of this module. So depending on `rust-ipfs-dep@0.1.0` will install `rust-ipfs v0.1.0` for your current system architecture, in to your project at `node_modules/rust-ipfs-dep/ipfs`.
 
 After downloading you can find out the path of the installed binary by calling the `path` function exported by this module:
 
 ```javascript
-const { path } = require('go-ipfs-dep')
+const { path } = require('rust-ipfs-dep')
 
 console.info('go-ipfs is installed at', path())
 ```
@@ -34,27 +31,27 @@ console.info('go-ipfs is installed at', path())
 An error will be thrown if the path to the binary cannot be resolved - if you do not wish this to happen, call `path.silent()`:
 
 ```javascript
-const { path: silent } = require('go-ipfs-dep')
+const { path: silent } = require('rust-ipfs-dep')
 
 console.info('go-ipfs may installed at', silent())
 ```
 
-### Overriding the go-ipfs version
+### Overriding the rust-ipfs version
 
 You can override the version of go-ipfs that gets downloaded by adding by adding a `go-ipfs.version` field to your `package.json`
 
 ```json
-"go-ipfs": {
+"rust-ipfs": {
   "version": "v0.4.13"
 },
 ```
 
 ### Using local IPFS daemon as the package download url
 
-The url to download the binaries from can be specified by adding a field `go-ipfs.distUrl` field to your `package.json`, eg:
+The url to download the binaries from can be specified by adding a field `rust-ipfs.distUrl` field to your `package.json`, eg:
 
 ```json
-"go-ipfs": {
+"rust-ipfs": {
   "version": "v0.4.3",
   "distUrl": "http://localhost:8080/ipfs/QmSoNtqW22htkg9mtHWNBvZLUEmqfq8su7957meS1iQfeL"
 },
@@ -62,17 +59,17 @@ The url to download the binaries from can be specified by adding a field `go-ipf
 
 Where `QmSoNtqW22htkg9mtHWNBvZLUEmqfq8su7957meS1iQfeL` is the root of the distributions web site.
 
-Or when run with `node src/bin.js`, the dist url can be passed via an environment variable `GO_IPFS_DIST_URL`, eg:
+Or when run with `node src/bin.js`, the dist url can be passed via an environment variable `RUST_IPFS_DIST_URL`, eg:
 
 ```
-GO_IPFS_DIST_URL=http://localhost:8080/ipfs/QmSoNtqW22htkg9mtHWNBvZLUEmqfq8su7957meS1iQfeL node binsrc/bin.js
+RUST_IPFS_DIST_URL=http://localhost:8080/ipfs/QmSoNtqW22htkg9mtHWNBvZLUEmqfq8su7957meS1iQfeL node binsrc/bin.js
 ```
 
 ### Arguments
 
 When used via `node src/bin.js`, you can specify the target platform, version and architecture via environment variables: `TARGET_OS`, `TARGET_VERSION` and `TARGET_ARCH`.
 
-We fetch the versions dynamically from `https://dist.ipfs.io/go-ipfs/versions` and the OSes and architectures from `https://dist.ipfs.io/go-ipfs/${VERSION}/dist.json`.
+We fetch the versions dynamically from `https://github.com/ipfs-rust/rust-ipfs/releases`.
 
 Or via command line arguments in the order of:
 
@@ -81,12 +78,12 @@ node src/bin.js <version> <platform> <architecture> <install directory>
 ```
 
 ```
-node src/bin.js v0.4.3 linux amd64 ./go-ipfs
+node src/bin.js v0.4.3 linux amd64 ./rust-ipfs
 ```
 
 ## Development
 
-**Note**: The binary gets put in the `go-ipfs` folder inside the module folder.
+**Note**: The binary gets put in the `rust-ipfs` folder inside the module folder.
 
 ## Deployment
 
