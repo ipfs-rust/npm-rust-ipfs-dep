@@ -4,7 +4,7 @@
   "description": "Install the latest rust-ipfs binary",
   "main": "src/index.js",
   "bin": {
-    "ipfs": "./bin/rust-ipfs-http"
+    "ipfs": "./ipfs"
   },
   "engines": {
     "node": ">=6.0.0",
