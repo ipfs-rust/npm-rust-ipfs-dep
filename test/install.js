@@ -5,13 +5,13 @@ const execa = require('execa')
 const rimraf = require('rimraf')
 
 /*
-  Test that go-ipfs is downloaded during npm install.
+  Test that rust-ipfs is downloaded during npm install.
   - package up the current source code with `npm pack`
   - install the tarball into the example project
-  - ensure that the "go-ipfs.version" prop in the package.json is used
+  - ensure that the "rust-ipfs.version" prop in the package.json is used
 */
 
-const testVersion = require('./fixture/example-project/package.json')['go-ipfs'].version
+const testVersion = require('./fixture/example-project/package.json')['rust-ipfs'].version
 let tarballName = null
 
 function packTarball () {
@@ -28,13 +28,14 @@ test.onFinish(() => {
   rimraf.sync(path.join('fixture', 'example-project', 'node_modules'))
 })
 
-test('Ensure go-ipfs.version defined in parent package.json is used', (t) => {
+test('Ensure rust-ipfs.version defined in parent package.json is used', (t) => {
   const tarballName = packTarball()
   // from `example-project`, install the module
   const res = execa.sync('npm', ['install', '--no-save', path.join('..', '..', tarballName)], {
     cwd: path.join(__dirname, 'fixture', 'example-project')
   })
-  const msg = `Downloading https://dist.ipfs.io/go-ipfs/${testVersion}`
+
+  const msg = `Downloading https://github.com/ipfs-rust/rust-ipfs/releases/download/${testVersion}`
   t.ok(res.stdout.includes(msg), msg)
   t.end()
 })
