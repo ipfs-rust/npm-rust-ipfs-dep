@@ -5,7 +5,7 @@
   "main": "index.js",
   "author": "",
   "license": "ISC",
-  "go-ipfs": {
-    "version": "v0.4.20"
+  "rust-ipfs": {
+    "version": "v0.1.0"
   }
 }
