@@ -113,7 +113,7 @@ test('Ensure Linux version gets downloaded', (t) => {
   })
 })
 
-test.skip('Ensure OSX version gets downloaded', (t) => {
+test('Ensure OSX version gets downloaded', (t) => {
   t.plan(9)
   const dir = path.resolve(__dirname, '../rust-ipfs')
   rimraf.sync(dir)
