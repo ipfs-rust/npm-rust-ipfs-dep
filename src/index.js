@@ -77,7 +77,10 @@ function cleanArguments (version, platform, arch, installPath) {
 
 async function ensureVersion ({ version, distUrl }) {
   const res = await fetch(`${distUrl}/repos/ipfs-rust/rust-ipfs/releases`)
-  if (!res.ok) throw new Error(`Unexpected status: ${res.status}`)
+  if (!res.ok) {
+    console.error(res.headers, (await res.text()))
+    throw new Error(`Unexpected status: ${res.status}`)
+  }
   const release = (await res.json()).filter(r => r.tag_name === version)[0]
 
   if (!release) {
